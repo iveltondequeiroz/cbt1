@@ -1,8 +1,5 @@
-# cbt1
+# City Book Tour
 
-cbt vdev 1
+City Book Tour application.
 
-## Getting Started
-
-For help getting started with Flutter, view our online
-[documentation](https://flutter.dev/).
+## versao cbt1 dev
