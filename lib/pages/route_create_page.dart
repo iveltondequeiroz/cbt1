@@ -46,12 +46,13 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
 
   GoogleMapController _controller;
   LatLng _currentPos;
+  String _currentPoiName='none';
 
   final Set<Marker> _markers = {};
   final Map<String, Marker> markers = {};
 
-  static const LatLng _center = const LatLng(-3.1019400, -60.0250000);
-  LatLng _lastMapPosition = _center;
+  LatLng _center; //= LatLng(-3.1019400, -60.0250000);
+  LatLng _lastMapPosition; // = _center;
   MapType _currentMapType = MapType.normal;
 
   LatLng manaus = LatLng(-3.1019400, -60.0250000);
@@ -62,7 +63,10 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
   @override
   void initState() {
     super.initState();
-    getCurrentPosition();
+    //getCurrentPosition();
+    getLocation();
+    //_center = ....
+    //_lastMapPosition = _center
     //getPois();
 
     //_pageController = PageController(initialPage: 1, viewportFraction: 0.8)..addListener(_onScroll);
@@ -116,22 +120,61 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
     });
   }
 
-  void _onCameraMove(CameraPosition position) {
+  void _onCameraMove(CameraPosition position) async {
     print('_onCameraMove_onCameraMove_onCameraMove_onCameraMove_onCameraMove');
     _lastMapPosition = position.target;
+    _center = position.target;
     print('_lastMapPosition');
     print(_lastMapPosition);
+
+    List<Placemark> newPlace = await Geolocator().placemarkFromCoordinates(_center.latitude, _center.longitude);
+    Placemark placeMark  = newPlace[0];
+    String name = placeMark.name;
+    String subLocality = placeMark.subLocality;
+    String locality = placeMark.locality;
+    String administrativeArea = placeMark.administrativeArea;
+    String postalCode = placeMark.postalCode;
+    String country = placeMark.country;
+    String address = "${name}, ${subLocality}, ${locality}, ${administrativeArea} ${postalCode}, ${country}";
+
+    print(address);
+
+
+    //getLocation();
+
 
     //onCameraMove: (object) => {debugPrint(object.target.toString())},
   }
 
-  getCurrentPosition() {
+  Future<Position> getLocation() async {
+    GeolocationStatus geolocationStatus  = await Geolocator().checkGeolocationPermissionStatus();
+    print(geolocationStatus);
+    Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     setState(() {
-      _currentPos = manaus;
-      //_currentPos = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
-      print("_currentPos *******************");
-      print(_currentPos);
+      _center = LatLng(position.latitude, position.longitude);
     });
+    print('position: ${position}');
+
+    List<Placemark> newPlace = await Geolocator().placemarkFromCoordinates(position.latitude, position.longitude);
+    Placemark placeMark  = newPlace[0];
+    String name = placeMark.name;
+    String subLocality = placeMark.subLocality;
+    String locality = placeMark.locality;
+    String administrativeArea = placeMark.administrativeArea;
+    String postalCode = placeMark.postalCode;
+    String country = placeMark.country;
+    String address = "${name}, ${subLocality}, ${locality}, ${administrativeArea} ${postalCode}, ${country}";
+
+    print(address);
+
+    /*setState(() {
+      //_currentPos = manaus;
+      //_currentPos
+      //Position p = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
+      Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.low);
+      print('position: ${position}');
+      return position;
+    });*/
   }
 
   void _zoomIn() {
@@ -245,11 +288,20 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
     });
   }
 
+  void _addPoiToRoute(){
+    print('add point to db and marker');
+    print('current pos: ${_currentPos}');
+    print('poi name: ${_currentPoiName}');
+  }
+
   void _addPoint(LatLng loc) {
     print('ADD POI ADD POI ADD POI ADD POI ADD POI ADD POI ADD POI ADD POI');
     print('LatLng loc');
+    setState(() {
+      _currentPos = loc;
+    });
     print(loc);
-    String location = 'Nao definido';
+    String location = '';
     final _name_controller = TextEditingController();
     _name_controller.text = location;
 
@@ -272,18 +324,27 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
 
                     ),
                   ),
-                  child: Column(
-                    children: <Widget>[
-                      TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Nome',
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                    child: Column(
+                      children: <Widget>[
+                        TextFormField(
+                          onChanged: (text){
+                            setState(() {
+                              _currentPoiName = text;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            labelText: 'Nome',
+                            hintText: 'Favor informar o nome da localidade'
+                          ),
+                          style: TextStyle(fontSize: 22),
+                          controller: _name_controller,
                         ),
-                        style: TextStyle(fontSize: 22),
-                        controller: _name_controller,
-                      ),
-                      SizedBox(height: 10,),
-                      Text(latlgt, style: TextStyle(fontSize: 22),),
-                    ],
+                        SizedBox(height: 10,),
+                        Text(latlgt, style: TextStyle(fontSize: 22),),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -305,7 +366,8 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
                       icon: Icon(Icons.check, size: 40,),
                       tooltip: 'Confirma',
                       onPressed: () {
-                        //Navigator.pop(context);
+                        Navigator.pop(context);
+                        _addPoiToRoute();
                       },
                     ),
                     IconButton(
@@ -313,7 +375,7 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
                       icon: Icon(Icons.block, size: 40,),
                       tooltip: 'Cancela',
                       onPressed: () {
-                        //Navigator.pop(context);
+                        Navigator.pop(context);
                       },
                     ),
                   ],

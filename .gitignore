@@ -42,3 +42,4 @@ build/
 .flutter-plugins-dependencies
 
 todo.txt
+lib/credentials.dart
