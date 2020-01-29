@@ -1,3 +1,0 @@
-//const PLACES_API_KEY = 'AIzaSyAle61gZkdX0UslEpR9GRqZ7X5TDafs8f4';
-const PLACES_API_KEY = 'AIzaSyDCN5g9gf4Jd7pU0xELLSXz9AJdQtX4vwo';
-
