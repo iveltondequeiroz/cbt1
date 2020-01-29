@@ -5,7 +5,7 @@ class CBTRoute {
   String name = 'none';
   String region= 'none';
   String img_url= 'photo.png';
-  int creator_id=1;
+  int creator_id=-1;
   List<Pois> pois;
 
   CBTRoute(this.id, this.name, this.region, this.img_url);

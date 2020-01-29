@@ -197,6 +197,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
       _isLoading = true;
     });
 
+    print("USER_ROUTES>GET ROUTES BY USER ID");
+    print('widget.user.id');
+    print(widget.user.id);
+
+
     print("GET routes by user id");
 
     final String url = 'http://10.0.2.2:3334/stats/routes/${widget.user.id}';

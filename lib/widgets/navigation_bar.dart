@@ -70,7 +70,7 @@ class _NavBarState extends State<NavBar> {
             Tooltip(message: 'Perfil', child: Icon(Icons.perm_identity, size: 30), ),
             Tooltip(message: 'Rotas', child: Icon(Icons.map, size: 30)),
             Tooltip(message: 'Livros', child: Icon(Icons.import_contacts, size: 30)),
-            Tooltip(message: 'Outros', child: Icon(Icons.add_location, size: 30)),
+            Tooltip(message: 'Outros', child: Icon(Icons.fastfood, size: 30)),
             Tooltip(message: 'Estatisticas', child: Icon(Icons.filter_9, size: 30)),
           ],
           color: kBarBackground,

@@ -21,7 +21,8 @@ class _UserRoutesPageState extends State<UserRoutesPage> {
   List routesData;
 
   getRoutes() async {
-    print("GET ROUTES");
+    print("USER_ROUTES>GET ROUTES");
+    print('widget.user.id');
     print(widget.user.id);
 
     final String url = 'http://10.0.2.2:3334/routes/user/${widget.user.id}';
@@ -127,7 +128,7 @@ class _UserRoutesPageState extends State<UserRoutesPage> {
               onPressed: (){
                 Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => RouteCreatePage())
+                    MaterialPageRoute(builder: (context) => RouteCreatePage(user: widget.user))
                 );
               },
             )
