@@ -1,3 +1,4 @@
+import 'package:cbt1/pages/route_edit_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -5,8 +6,9 @@ import 'dart:convert';
 import '../constants.dart';
 import '../models/user.dart';
 import '../models/route.dart';
-import 'route_timeline_page.dart';
+//import 'route_timeline_page.dart';
 import 'route_create_page.dart';
+import 'route_edit_page.dart';
 
 
 class UserRoutesPage extends StatefulWidget {
@@ -147,18 +149,18 @@ class _UserRoutesPageState extends State<UserRoutesPage> {
 
   Widget getListView() {
     var count = routesData == null ? 0 : routesData.length;
-    print('routesData.length');
-    print(count);
+    //print('routesData.length');
+    //print(count);
 
     var listView = ListView.builder(
       itemCount: routesData == null ? 0 : routesData.length,
       itemBuilder: (BuildContext context, int index) {
         String img_url = 'photo.png';
-        print(routesData[index]["img_url"].runtimeType);
+        //print(routesData[index]["img_url"].runtimeType);
 
         if(routesData[index]["img_url"] != null || routesData[index]["img_url"] !=''){
-          print(routesData[index]["img_url"]);
-          print('routesData[index] null or empty');
+          //print(routesData[index]["img_url"]);
+          //print('routesData[index] null or empty');
           img_url = routesData[index]["img_url"];
         }
 
@@ -184,7 +186,8 @@ class _UserRoutesPageState extends State<UserRoutesPage> {
                 );
                 Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => RouteTimelinePage(route: cbtroute))
+                    MaterialPageRoute(builder: (context) => RouteEditPage(user: widget.user, route: cbtroute))
+                    //MaterialPageRoute(builder: (context) => RouteTimelinePage(route: cbtroute))
                 );
               },
             ),

@@ -14,7 +14,7 @@ import '../credentials.dart';
 //import '../models/manaus_pois.dart';
 import '../models/poi.dart';
 import '../models/user.dart';
-import '../widgets/loader.dart';
+import '../widgets/loader_screen.dart';
 
 class RouteCreatePage extends StatefulWidget {
   final User user;
@@ -30,6 +30,7 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
 
   String _appbar_title = 'CRIAR ROTA';
   bool _isLoading = false;
+  bool _isOkButtonEnabled = false;
 
   String _selectedItem = 'none';
 
@@ -46,7 +47,10 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
 
   GoogleMapController _controller;
   LatLng _currentPos;
-  String _currentPoiName='none';
+  String _currentPoiName;
+  final _name_controller = TextEditingController();
+  String _currentAddress = '';
+
 
   final Set<Marker> _markers = {};
   final Map<String, Marker> markers = {};
@@ -126,25 +130,24 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
     _center = position.target;
     print('_lastMapPosition');
     print(_lastMapPosition);
-
+/*
     List<Placemark> newPlace = await Geolocator().placemarkFromCoordinates(_center.latitude, _center.longitude);
     Placemark placeMark  = newPlace[0];
     String name = placeMark.name;
     String subLocality = placeMark.subLocality;
     String locality = placeMark.locality;
+    String thoroughfare = placeMark.thoroughfare;
     String administrativeArea = placeMark.administrativeArea;
     String postalCode = placeMark.postalCode;
     String country = placeMark.country;
-    String address = "${name}, ${subLocality}, ${locality}, ${administrativeArea} ${postalCode}, ${country}";
+    String address = "${name}, ${subLocality}, ${locality}, ${thoroughfare}, ${administrativeArea} ${postalCode}, ${country}";
 
     print(address);
 
-
-    //getLocation();
-
-
+*/
     //onCameraMove: (object) => {debugPrint(object.target.toString())},
   }
+
 
   Future<Position> getLocation() async {
     GeolocationStatus geolocationStatus  = await Geolocator().checkGeolocationPermissionStatus();
@@ -155,7 +158,7 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
     });
     print('position: ${position}');
 
-    List<Placemark> newPlace = await Geolocator().placemarkFromCoordinates(position.latitude, position.longitude);
+  /*  List<Placemark> newPlace = await Geolocator().placemarkFromCoordinates(position.latitude, position.longitude);
     Placemark placeMark  = newPlace[0];
     String name = placeMark.name;
     String subLocality = placeMark.subLocality;
@@ -166,6 +169,8 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
     String address = "${name}, ${subLocality}, ${locality}, ${administrativeArea} ${postalCode}, ${country}";
 
     print(address);
+
+   */
 
     /*setState(() {
       //_currentPos = manaus;
@@ -288,22 +293,61 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
     });
   }
 
-  void _addPoiToRoute(){
+  void _addPoiToRoute() async {
     print('add point to db and marker');
     print('current pos: ${_currentPos}');
     print('poi name: ${_currentPoiName}');
+    final String poiUrl = 'http://10.0.2.2:3334/pois';
+    final poiBody = {
+      "name": _currentPoiName,
+      "lat": _currentPos.latitude.toString(),
+      "lgt": _currentPos.longitude.toString(),
+      "route_id": _route.id.toString()
+    };
+
+    http.Response poiResponse = await http.post(poiUrl, body: poiBody);
+
+    if (poiResponse.statusCode == 200) {
+      //List poiData = json.decode(poiResponse.body);
+      print('Poi inserted');
+
+    } else {
+      print("ERROR: get /routes/id");
+    }
+
+    setState(() {
+      _currentPoiName = null;
+      _isOkButtonEnabled = false;
+    });
   }
 
-  void _addPoint(LatLng loc) {
+  void _addPoint(LatLng loc) async {
     print('ADD POI ADD POI ADD POI ADD POI ADD POI ADD POI ADD POI ADD POI');
     print('LatLng loc');
+    print(loc);
+    List<Placemark> newPlace = await Geolocator().placemarkFromCoordinates(loc.latitude, loc.longitude);
+    Placemark placeMark  = newPlace[0];
+
+    String poiName = placeMark.thoroughfare;
+    print('poiName =poiName =poiName =poiName = ${poiName}');
+
+    String name = placeMark.name;
+    String subLocality = placeMark.subLocality;
+    String locality = placeMark.locality;
+    String thoroughfare = placeMark.thoroughfare;
+    String administrativeArea = placeMark.administrativeArea;
+    String postalCode = placeMark.postalCode;
+    String country = placeMark.country;
+    _currentAddress = "${thoroughfare}, ${subLocality}, ${name}, ${administrativeArea} , ${country}";
+    print(_currentAddress);
+
     setState(() {
       _currentPos = loc;
+      _currentPoiName = poiName;
+      _isOkButtonEnabled = true;
     });
-    print(loc);
-    String location = '';
-    final _name_controller = TextEditingController();
-    _name_controller.text = location;
+
+    _name_controller.text = poiName;
 
     String latlgt =
         'lat: ${loc.latitude.toString().substring(1, 8)} , lgt: ${loc.longitude.toString().substring(1, 8)}';
@@ -313,7 +357,7 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
           return Column(
             children: <Widget>[
               Container(
-                height: 100,
+                height: 140,
                 color: Color(0xFF737373),
                 child: Container(
                   decoration: BoxDecoration(
@@ -332,7 +376,15 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
                           onChanged: (text){
                             setState(() {
                               _currentPoiName = text;
+                              if(text.length>0) {
+                                print('false');
+                                _isOkButtonEnabled = true;
+                              } else {
+                                print('true');
+                                _isOkButtonEnabled = false;
+                              }
                             });
+                            print('_isOkButtonEnabled : ${_isOkButtonEnabled }');
                           },
                           decoration: InputDecoration(
                             labelText: 'Nome',
@@ -342,6 +394,7 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
                           controller: _name_controller,
                         ),
                         SizedBox(height: 10,),
+                        Text(_currentAddress, style: TextStyle(fontSize: 22)),
                         Text(latlgt, style: TextStyle(fontSize: 22),),
                       ],
                     ),
@@ -365,7 +418,7 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
                       color: Colors.green,
                       icon: Icon(Icons.check, size: 40,),
                       tooltip: 'Confirma',
-                      onPressed: () {
+                      onPressed: !_isOkButtonEnabled ? null :() {
                         Navigator.pop(context);
                         _addPoiToRoute();
                       },
@@ -643,6 +696,7 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
                                 children: <Widget>[
                                   TextFormField(
                                     style: kInputTextStyle,
+                                    autofocus: true,
                                     decoration: InputDecoration(
                                         errorStyle: kInputTextError,
                                         labelText: 'Nome da Rota',
@@ -662,30 +716,7 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
                                     height: 20,
                                   ),
                                   _isLoading == true
-                                      ? Center(
-                                          child: Container(
-                                            color: kWhiteTransparentColor,
-                                            width: MediaQuery.of(context)
-                                                .size
-                                                .width,
-                                            height: MediaQuery.of(context)
-                                                .size
-                                                .height,
-                                            child: Column(
-                                              children: <Widget>[
-                                                SizedBox(
-                                                  height: 100,
-                                                ),
-                                                Text(
-                                                  'Criando a rota...',
-                                                  style:
-                                                      TextStyle(fontSize: 30),
-                                                ),
-                                                Loader(),
-                                              ],
-                                            ),
-                                          ),
-                                        )
+                                      ? LoaderScreen(title:'Criando a rota...')
                                       : Container(
                                           color: Color.fromRGBO(100, 0, 0, 0.7),
                                           height: 60,
@@ -744,14 +775,14 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
     });
 
     print("_route.creator_id");
-    print(_route.creator_id);
+    print(_route.creatorId);
 
     final String url = 'http://10.0.2.2:3334/routes';
     final body = {
       "name": _route.name,
       "region": _route.region,
       "creator": widget.user.id.toString(),
-      "img_url": _route.img_url
+      "img_url": _route.imgUrl
     };
 
     //print(body);
@@ -761,48 +792,22 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
     if (response.statusCode == 200) {
       print('route creetd OK route creetd OK route creetd OK');
 
-      /*  var alertStyle = AlertStyle(
-        //overlayColor: Colors.blue[400],
-        animationType: AnimationType.fromTop,
-        isCloseButton: false,
-        isOverlayTapDismiss: false,
-        descStyle: TextStyle(fontWeight: FontWeight.bold),
-        animationDuration: Duration(milliseconds: 400),
-        alertBorder: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(50.0),
-          side: BorderSide(
-            color: Colors.grey,
-          ),
-        ),
-        titleStyle: TextStyle(
-          color: Color.fromRGBO(91, 55, 185, 1.0),
-        ),
-      );
+      final String routeUrl = 'http://10.0.2.2:3334/routes/id';
+      final routeBody = {
+        "userid":widget.user.id.toString(),
+        "name": _route.name
+      };
 
-
-      Alert(
-        context: context,
-        style: alertStyle,
-        type: AlertType.info,
-        title: "Nova Rota",
-        desc: "Rota criada com sucesso.",
-        buttons: [
-          DialogButton(
-            child: Text(
-              "Ok",
-              style: TextStyle(color: Colors.white, fontSize: 20),
-            ),
-            onPressed: () => Navigator.pop(context),
-            color: Color.fromRGBO(91, 55, 185, 1.0),
-            radius: BorderRadius.circular(10.0),
-          ),
-        ],
-      ).show();
-
-      */
-
+      http.Response routeIdresponse = await http.post(routeUrl, body: routeBody);
+      if(routeIdresponse.statusCode == 200) {
+        List routeData = json.decode(routeIdresponse.body);
+        _route.id =  routeData[0]["id"];
+        print(_route.id);
+      } else {
+        print("ERROR: get /routes/id");
+      }
     } else {
-      print('ERRRRROR');
+      print('ERROR post /routes');
       print(response.statusCode);
     }
 
@@ -916,6 +921,47 @@ class _RouteCreatePageState extends State<RouteCreatePage> {
     );
   }
 }
+
+/*  var alertStyle = AlertStyle(
+        //overlayColor: Colors.blue[400],
+        animationType: AnimationType.fromTop,
+        isCloseButton: false,
+        isOverlayTapDismiss: false,
+        descStyle: TextStyle(fontWeight: FontWeight.bold),
+        animationDuration: Duration(milliseconds: 400),
+        alertBorder: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(50.0),
+          side: BorderSide(
+            color: Colors.grey,
+          ),
+        ),
+        titleStyle: TextStyle(
+          color: Color.fromRGBO(91, 55, 185, 1.0),
+        ),
+      );
+
+
+      Alert(
+        context: context,
+        style: alertStyle,
+        type: AlertType.info,
+        title: "Nova Rota",
+        desc: "Rota criada com sucesso.",
+        buttons: [
+          DialogButton(
+            child: Text(
+              "Ok",
+              style: TextStyle(color: Colors.white, fontSize: 20),
+            ),
+            onPressed: () => Navigator.pop(context),
+            color: Color.fromRGBO(91, 55, 185, 1.0),
+            radius: BorderRadius.circular(10.0),
+          ),
+        ],
+      ).show();
+
+      */
+
 
 /*
 Column(

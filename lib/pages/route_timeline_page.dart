@@ -1,4 +1,4 @@
-import '../models/route.dart';
+  import '../models/route.dart';
 import 'package:flutter/material.dart';
 import '../constants.dart';
 import '../widgets/CBTTimeLine.dart';
@@ -28,7 +28,7 @@ class _RouteTimelinePageState extends State<RouteTimelinePage> {
           backgroundColor: kBarBackground,
           automaticallyImplyLeading: false,
           actions: <Widget>[
-            IconButton(
+             IconButton(
               icon: Icon(Icons.power_settings_new),
               tooltip: 'Sair',
               onPressed: () {
